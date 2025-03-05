@@ -76,7 +76,7 @@ func (s *StateNode) transition(event string) bool {
 		if s.currentState == nil {
 			return false
 		}
-		// if theres no event for the tranistion - nothing to handle
+		// if theres no event for the transition - nothing to handle
 		nextState, ok := s.currentState.On[event]
 		if !ok {
 			return false
