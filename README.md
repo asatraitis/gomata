@@ -1,14 +1,12 @@
 # GoMata
 
 [![License](https://img.shields.io/github/license/asatraitis/gomata)](LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/asatraitis/gomata)](https://goreportcard.com/report/github.com/asatraitis/gomata)
-
 Lightweight and minimalistic Finite State Machine (FSM) implementation in Go. Allows parsing JSON string format similar to XState. Currently supports entry and exit events during transitions.
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Examples](#examples)
-- [License](#license)
 
 ## Installation
 
