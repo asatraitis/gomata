@@ -28,8 +28,7 @@ func (m *Machine) Start() error {
 
 	m.mutx.Lock()
 	defer m.mutx.Unlock()
-	m.root.Init()
-	return nil
+	return m.root.Init()
 }
 func (m *Machine) OnTransition(handler *func(Event)) {
 	m.handler = handler

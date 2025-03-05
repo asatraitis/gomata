@@ -43,6 +43,19 @@ func TestStart_FAIL_BadJSON(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestStart_FAIL_BadInitialState(t *testing.T) {
+	const jsonConfig = `{
+		"initial": "pending",
+		"states": {
+			"idle": {}
+		}
+	}`
+	m := NewMachine(jsonConfig)
+	err := m.Start()
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "No definition for state: pending")
+}
+
 func TestOnTransition(t *testing.T) {
 	const jsonConfig = `{
 		"initial": "idle",
