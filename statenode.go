@@ -48,6 +48,16 @@ func (s *StateNode) Init() error {
 
 	return nil
 }
+func (s *StateNode) GetState() string {
+	if s.currentState != nil {
+		childState := s.currentState.GetState()
+		if childState != "" {
+			return s.currentStateName + "." + childState
+		}
+		return s.currentStateName
+	}
+	return ""
+}
 func (s *StateNode) setCurrentState(name string, node *StateNode) {
 	if name == "" || node == nil {
 		return

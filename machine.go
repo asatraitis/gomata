@@ -34,8 +34,12 @@ func (m *Machine) OnTransition(handler *func(Event)) {
 	m.handler = handler
 	m.root.Subscribe(m.handler)
 }
+func (m *Machine) GetState() string {
+	m.mutx.Lock()
+	defer m.mutx.Unlock()
+	return m.root.GetState()
+}
 func (m *Machine) Send(event string) {
-
 	m.mutx.Lock()
 	defer m.mutx.Unlock()
 	m.root.transition(event)

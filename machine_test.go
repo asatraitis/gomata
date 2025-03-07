@@ -95,7 +95,9 @@ func TestSend(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, testEvents, 1)
 	assert.Equal(t, "entered_idle", testEvents[0].Type)
+	assert.Equal(t, "idle", m.GetState())
 	m.Send("START")
 	assert.Len(t, testEvents, 2)
+	assert.Equal(t, "running", m.GetState())
 	assert.Equal(t, "entered_running", testEvents[1].Type)
 }

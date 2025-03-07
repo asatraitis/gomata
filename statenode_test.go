@@ -307,3 +307,34 @@ func TestTransition(t *testing.T) {
 	assert.Equal(t, "exited_idle", testEvents[3].Type)
 	assert.Equal(t, "entered_running", testEvents[4].Type)
 }
+
+func TestGetState_OK(t *testing.T) {
+	node := StateNode{
+		Initial: "idle",
+		States: map[string]StateNode{
+			"idle": StateNode{
+				Entry:   "entered_idle",
+				Initial: "idle.low",
+				On: map[string]string{
+					"START": "running",
+				},
+				States: map[string]StateNode{
+					"idle.low": StateNode{
+						Entry: "entered_idle.low",
+						Exit:  "exited_idle.low",
+					},
+				},
+				Exit: "exited_idle",
+			},
+			"running": StateNode{
+				Entry: "entered_running",
+				On: map[string]string{
+					"STOP": "idle",
+				},
+				Exit: "exited_running",
+			},
+		},
+	}
+	node.Init()
+	assert.Equal(t, "idle.idle.low", node.GetState())
+}
