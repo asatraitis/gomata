@@ -9,8 +9,6 @@ type Machine struct {
 	mutx   sync.Mutex
 	root   *StateNode
 	config string
-
-	handler *func(Event)
 }
 
 func NewMachine(jsonConfig string) *Machine {
@@ -30,9 +28,11 @@ func (m *Machine) Start() error {
 	defer m.mutx.Unlock()
 	return m.root.Init()
 }
-func (m *Machine) OnTransition(handler *func(Event)) {
-	m.handler = handler
-	m.root.Subscribe(m.handler)
+func (m *Machine) OnEmit(handler *func(Event)) {
+	m.root.Subscribe(handler)
+}
+func (m *Machine) OnTransition(handler *func(State)) {
+	m.root.SubscribeToTransitions(handler)
 }
 func (m *Machine) GetState() string {
 	m.mutx.Lock()

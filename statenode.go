@@ -4,8 +4,12 @@ import (
 	"errors"
 )
 
+type State struct {
+	Value string
+}
 type Event struct {
-	Type string
+	Type  string
+	State string
 }
 type StateNode struct {
 	ID      string               `json:"id"`
@@ -19,6 +23,10 @@ type StateNode struct {
 	currentState     *StateNode
 	currentStateName string
 	emit             func(Event)
+
+	// TODO: Should this be consolidated with subscribers and use internal flags to codnitionally fire emits and transitions?
+	transitionSubscribers []*func(State)
+	stateChange           func(State)
 }
 
 func (s *StateNode) Init() error {
@@ -35,7 +43,11 @@ func (s *StateNode) Init() error {
 		s.emit = func(e Event) {
 			s.Emit(e)
 		}
+		s.stateChange = func(state State) {
+			s.EmitTransition()
+		}
 		state.Subscribe(&s.emit)
+		state.SubscribeToTransitions(&s.stateChange)
 		s.setCurrentState(s.Initial, &state)
 	}
 	// emit enter transition if defined
@@ -64,6 +76,7 @@ func (s *StateNode) setCurrentState(name string, node *StateNode) {
 	}
 	s.currentStateName = name
 	s.currentState = node
+	s.EmitTransition()
 }
 func (s *StateNode) Close() {
 	// emit exit if exists
@@ -102,6 +115,7 @@ func (s *StateNode) transition(event string) bool {
 
 		// Init current state node
 		nextStateNode.Subscribe(&s.emit)
+		nextStateNode.SubscribeToTransitions(&s.stateChange)
 		s.setCurrentState(nextState, &nextStateNode)
 		s.currentState.Init()
 		return true
@@ -146,4 +160,25 @@ func (s *StateNode) Emit(e Event) {
 		}
 	}
 
+}
+func (s *StateNode) SubscribeToTransitions(cb *func(e State)) {
+	s.transitionSubscribers = append(s.transitionSubscribers, cb)
+}
+func (s *StateNode) UnsubscribeFromTransitions(cb *func(State)) {
+	// unsubscribe using specific fun pointer
+	newSubs := []*func(State){}
+	for _, fn := range s.transitionSubscribers {
+		if fn != cb {
+			newSubs = append(newSubs, fn)
+		}
+	}
+	s.transitionSubscribers = newSubs
+
+}
+func (s *StateNode) EmitTransition() {
+	if len(s.transitionSubscribers) != 0 {
+		for _, fn := range s.transitionSubscribers {
+			(*fn)(State{Value: s.GetState()})
+		}
+	}
 }

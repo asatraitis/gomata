@@ -1,6 +1,7 @@
 package gomata
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -337,4 +338,29 @@ func TestGetState_OK(t *testing.T) {
 	}
 	node.Init()
 	assert.Equal(t, "idle.idle.low", node.GetState())
+}
+
+func TestEmitTransition_OK(t *testing.T) {
+	node := &StateNode{
+		Initial: "idle",
+		States: map[string]StateNode{
+			"idle": StateNode{
+				Initial: "low",
+				States: map[string]StateNode{
+					"low": StateNode{},
+				},
+			},
+		},
+	}
+	states := []State{}
+	handler := func(state State) {
+		fmt.Println(state)
+		states = append(states, state)
+	}
+	node.SubscribeToTransitions(&handler)
+	node.Init()
+
+	assert.Len(t, states, 2)
+	assert.Equal(t, "idle", states[0].Value)
+	assert.Equal(t, "idle.low", states[1].Value)
 }

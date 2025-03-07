@@ -56,7 +56,7 @@ func TestStart_FAIL_BadInitialState(t *testing.T) {
 	assert.ErrorContains(t, err, "No definition for state: pending")
 }
 
-func TestOnTransition(t *testing.T) {
+func TestOnEmit(t *testing.T) {
 	const jsonConfig = `{
 		"initial": "idle",
 		"states": {
@@ -66,7 +66,7 @@ func TestOnTransition(t *testing.T) {
 	m := NewMachine(jsonConfig)
 	handler := func(e Event) {}
 	assert.Len(t, m.root.subscribers, 0)
-	m.OnTransition(&handler)
+	m.OnEmit(&handler)
 	assert.Len(t, m.root.subscribers, 1)
 }
 
@@ -90,7 +90,7 @@ func TestSend(t *testing.T) {
 	handler := func(e Event) {
 		testEvents = append(testEvents, e)
 	}
-	m.OnTransition(&handler)
+	m.OnEmit(&handler)
 	err := m.Start()
 	assert.NoError(t, err)
 	assert.Len(t, testEvents, 1)
@@ -100,4 +100,32 @@ func TestSend(t *testing.T) {
 	assert.Len(t, testEvents, 2)
 	assert.Equal(t, "running", m.GetState())
 	assert.Equal(t, "entered_running", testEvents[1].Type)
+}
+
+func TestOnTransition_OK(t *testing.T) {
+	const jsonConfig = `{
+		"initial": "idle",
+		"states": {
+			"idle": {
+				"on": {
+					"START": "running"
+				}
+			},
+			"running": {}
+		}
+	}`
+	m := NewMachine(jsonConfig)
+	testStates := []State{}
+	handler := func(state State) {
+		testStates = append(testStates, state)
+	}
+
+	m.OnTransition(&handler)
+	m.Start()
+	assert.Len(t, testStates, 1)
+	assert.Equal(t, "idle", testStates[0].Value)
+
+	m.Send("START")
+	assert.Len(t, testStates, 2)
+	assert.Equal(t, "running", testStates[1].Value)
 }
