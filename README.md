@@ -53,17 +53,21 @@ func main() {
 		}
 	}`
 	m := gomata.NewMachine(fsmJson)
-	handler := func(e gomata.Event) {
-		fmt.Println("[Transition]: ", e.Type)
+	handler := func(state gomata.State) {
+		fmt.Println("[Transition]: ", state.Value)
 	}
+	emitHandler := func(e gomata.Event) {
+		fmt.Println("[Emit]: ", e.Type)
+	}
+	// OnTransition is a callback for state change
 	m.OnTransition(&handler)
-	err := m.Start() // [Transition]: entered_standing
+	err := m.Start() // [Transition]: standing; [Emit]: entered_standing
 	if err != nil {
 		fmt.Println("[ERR]: ", err)
 	}
-	m.Send("WALK") // [Transition]: exited_standing > [Transition]: entered_walking
-	m.Send("RUN")  // [Transition]: entered_running
+	m.Send("WALK") // [emit]: exited_standing > [Transition]: walking > [emit]: entered_walking
+	m.Send("RUN")  // [Transition]: running > [emit]: entered_running
 
-	// Start > standing > walking > running > walking
+	// Start > standing > walking > running
 }
 ```
